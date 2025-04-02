@@ -1,42 +1,144 @@
-Desafio Hyperativa
-==================
+# Desafio Hyperativa
 
-## Sobre o desafio
+Esta aplicação é uma API desenvolvida com **Spring Boot** para cadastro e consulta de números de cartão. A API atende aos seguintes requisitos:
 
-### Criação de API para cadastro e consulta de número de cartão completo
+- **Autenticação**: Utiliza JWT para autenticar o usuário.
+- **Inserção de Dados**: Permite o cadastro de um único cartão via JSON ou o upload de um arquivo TXT contendo vários números.
+- **Consulta de Dados**: Consulta se determinado número de cartão existe no banco e retorna seu identificador único.
+- **Segurança**: As informações são tratadas com cuidado devido à sua natureza sensível.
 
-Você precisa criar uma API com os seguintes requisitos:
+---
 
-#### End-point para autenticação do usuário
+## Tecnologias Utilizadas
 
-* O cliente deve realizar uma autenticação (JWT ou OAuth2) para realizar o uso da API.
+- Java 17  
+- Spring Boot 3.1.1  
+- Spring Data JPA  
+- Spring Security (autenticação JWT)  
+- MySQL (banco de dados)  
+- Maven (gerenciamento de dependências e build)  
+- Jasypt (para criptografia de dados sensíveis)  
 
-#### End-point para inserção de dados
+---
 
-* O cliente poderá inserir os dados através de requisições informando um único cartão ou a partir de arquivo TXT a API.
-* Defina o contrato da API com os padrões a serem adotados para integração.
-* Escolha o banco de dados que achar melhor e a estrutura que achar mais adequada.
-* Por serem dados sensíveis toda informação deve ser armazenada de maneira segura no banco de dados.
+## Pré-requisitos
 
-#### End-point para consulta de dados
+- JDK 17 instalado  
+- Maven instalado  
+- MySQL instalado e em execução  
 
-* O cliente consulta se determinado número de cartão completo existe na base de dados e retorna um identificador único do sistema;
+---
 
-#### Requisitos Obrigatórios
+## Configuração do Banco de Dados
 
-* Logar as requisições de uso da API e seus retornos.
-* Usar linguagem C# com Framework .NET ou Python com Flask ou Django;
+1. Crie um banco de dados MySQL, por exemplo: `desafio_hyperativa`
+2. Atualize o arquivo `src/main/resources/application.properties` com suas credenciais e configurações do MySQL:
 
-#### Requisitos Opcionais (Não necessário)
+<pre>spring.datasource.url=jdbc:mysql://localhost:3306/desafio_hyperativa?useSSL=false&serverTimezone=UTC
+spring.datasource.username=SEU_USUARIO
+spring.datasource.password=SUA_SENHA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true </pre>
 
-* Ter uma cobertura de teste unitários relativamente boa.
-* Utilizar criptografia (end-to-end encryption) para tráfego de informações.
+---
 
-## Orientações
-* Procure fazer uma API sucinta. 
-* O arquivo TXT com o formato que o cliente irá enviar estão no repositório.
-* Pensar em escalabilidade, pode ser uma quantidade muito grande de dados.
-* Coloque isso em um repositório GIT.
-* Colocar as orientações de setup e uso no README do seu repositório.
+## Configuração do JWT
 
-# Boa sorte 
+Adicione as seguintes configurações também no `application.properties`:
+
+<pre>jwt.secret=chaveSecretaMuitoForte
+jwt.expiration=3600000  # 1 hora em milissegundos</pre>
+
+---
+
+## Como Rodar a Aplicação
+
+### Compilação e Execução
+
+1. No terminal, execute:
+
+`mvn clean install`
+
+2. Para rodar a aplicação:
+
+`mvn spring-boot:run`
+
+A aplicação estará disponível em: http://localhost:8080
+
+---
+
+## Endpoints da API
+
+### 1. Autenticação do Usuário
+
+- URL: /api/auth
+- Método: POST
+- Request Body:
+
+<pre>{
+  "username": "usuarioExemplo",
+  "password": "senhaSegura"
+}</pre>
+
+- Response:
+
+<pre>{
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}</pre>
+
+---
+
+### 2. Inserção de Cartão via JSON
+
+- URL: /api/cards
+- Método: POST
+- Headers:
+  - Authorization: Bearer <JWT_TOKEN>
+  - Content-Type: application/json
+- Request Body:
+
+<pre>{
+  "cardNumber": "4456897999999999"
+}</pre>
+
+- Response: Retorna o cartão salvo com seu ID.
+
+---
+
+### 3. Upload de Cartões via Arquivo TXT
+
+- URL: /api/cards/upload
+- Método: POST
+- Headers:
+  - Authorization: Bearer <JWT_TOKEN>
+  - Content-Type: multipart/form-data
+- Form Data:
+  - file: Selecione o arquivo TXT contendo os números de cartão.
+
+- Response: Retorna uma mensagem informando quantos registros foram inseridos com sucesso.
+
+---
+
+### 4. Consulta de Cartão
+
+- URL: /api/cards/{cardNumber}
+- Método: GET
+- Headers:
+  - Authorization: Bearer <JWT_TOKEN>
+
+- Response (cartão existente):
+
+<pre>{
+  "id": 1
+}</pre>
+
+- Response (cartão inexistente):  
+  HTTP 404 com a mensagem: "Cartão não encontrado"
+
+---
+
+## Testes
+
+A aplicação possui testes unitários para os endpoints. Para executá-los:
+
+<pre>mvn test</pre>
